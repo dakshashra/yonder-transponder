@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import './App.css';
-
+const geminiApiKey = 'AIzaSyC35I9cDbJmkd4wTtyfzNNm3AZ-Ba9fKD4';
 function App() {
   const [selectedAirline, setSelectedAirline] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
@@ -16,6 +18,12 @@ function App() {
   const [testCounter, setTestCounter] = useState(0);
   const [polygonCoords, setPolygonCoords] = useState(null);
   const [visibleLocations, setVisibleLocations] = useState([]);
+  const [locationFacts, setLocationFacts] = useState({}); // Store facts for each location
+  const [loadingFacts, setLoadingFacts] = useState({}); // Track loading state for facts
+  //const [geminiApiKey, setGeminiApiKey] = useState('AIzaSyC35I9cDbJmkd4wTtyfzNNm3AZ-Ba9fKD4');
+ 
+ // const geminiApiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  // const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const dropdownRef = useRef(null);
   const pollingIntervalRef = useRef(null);
   const testIntervalRef = useRef(null);
@@ -129,6 +137,8 @@ function App() {
     ["Wind Cave National Park", "South Dakota", 43.6114, -103.4394],
     ["Wrangell-St. Elias National Park", "Alaska", 61.0000, -142.0000]
   ];
+  console.log('REACT_APP_GEMINI_API_KEY (browser):',   geminiApiKey
+  );
 
   // Major Cities data
   const major_cities = [
@@ -248,7 +258,7 @@ function App() {
     ["Helena", "Montana", 46.5891, -112.0391],
     ["Cheyenne", "Wyoming", 41.1400, -104.8202],
     ["Casper", "Wyoming", 42.8501, -106.3252],
-    ["Albuquerque", "New Mexico", 35.0844, -106.6504], // already in your list but important hub
+    ["Albuquerque", "New Mexico", 35.0844, -106.6504],
     ["Santa Fe", "New Mexico", 35.6870, -105.9378],
     ["Spokane", "Washington", 47.6588, -117.4260],
     ["Tacoma", "Washington", 47.2529, -122.4443],
@@ -277,6 +287,81 @@ function App() {
     ["Lexington", "Kentucky", 38.0406, -84.5037],
     ["Charleston", "West Virginia", 38.3498, -81.6326]
   ];
+  // Make sure geminiApiKey is only declared once in the file, move this to the top-level if needed
+  // const geminiApiKey = 'AIzaSyC35I9cDbJmkd4wTtyfzNNm3AZ-Ba9fKD4';
+
+  // Function to generate educational content using Gemini AI
+  const generateLocationFact = async (location) => {
+    if (!geminiApiKey) {
+      return "Please add your Gemini API key to get educational facts about locations!";
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(geminiApiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      let prompt = "";
+      if (location.type === 'National Park') {
+        prompt = `Tell me a fascinating and educational fact about ${location.name} in ${location.state} for teenagers. Focus on how it was formed geologically, what makes it unique, wildlife that lives there, or interesting historical facts. Keep it engaging and under 150 words. Make it sound exciting and educational!`;
+      } else if (location.type === 'Natural Attraction') {
+        prompt = `Tell me an amazing educational fact about ${location.name} in ${location.state} for teenagers. Focus on how this natural feature was formed, what geological processes created it, or why it's scientifically significant. Keep it engaging and under 150 words. Make it exciting to learn about!`;
+      } else if (location.type === 'Major City' || location.type === 'City') {
+        prompt = `Tell me a cool and educational fact about ${location.name}, ${location.state} for teenagers. Focus on its history, cultural significance, famous landmarks, or interesting trivia that most people don't know. Keep it engaging and under 150 words. Make it fun to learn about!`;
+      }
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      return text || "Sorry, couldn't generate a fact right now. Try again!";
+    } catch (error) {
+      console.error('Error generating fact:', error);
+      // More specific error handling
+      if (error.message.includes('API key')) {
+        return "Invalid API key. Please check your Gemini API key.";
+      }
+      if (error.message.includes('quota')) {
+        return "API quota exceeded. Please try again later.";
+      }
+      return `Error generating fact: ${error.message}`;
+    }
+  };
+
+  // Function to shuffle and get a new fact
+  const shuffleFact = async (location) => {
+    const locationKey = `${location.name}_${location.state}`;
+    setLoadingFacts(prev => ({ ...prev, [locationKey]: true }));
+    
+    const newFact = await generateLocationFact(location);
+    setLocationFacts(prev => ({ ...prev, [locationKey]: newFact }));
+    setLoadingFacts(prev => ({ ...prev, [locationKey]: false }));
+  };
+
+  // Load facts for all visible locations
+  const loadFactsForVisibleLocations = async (locations) => {
+    if (!geminiApiKey) return;
+    
+    // Load facts for new locations that don't have them yet
+    for (const location of locations) {
+      const locationKey = `${location.name}_${location.state}`;
+      if (!locationFacts[locationKey] && !loadingFacts[locationKey]) {
+        setLoadingFacts(prev => ({ ...prev, [locationKey]: true }));
+        
+        try {
+          const fact = await generateLocationFact(location);
+          setLocationFacts(prev => ({ ...prev, [locationKey]: fact }));
+        } catch (error) {
+          console.error('Error loading fact for', location.name, ':', error);
+          setLocationFacts(prev => ({ ...prev, [locationKey]: 'Error loading fact. Try again!' }));
+        }
+        
+        setLoadingFacts(prev => ({ ...prev, [locationKey]: false }));
+        
+        // Add a small delay between API calls to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+  };
 
   const handleAirlineSelect = (airline) => {
     setSelectedAirline(airline.code);
@@ -519,6 +604,13 @@ function App() {
     };
   }, []);
 
+  // Load facts when visible locations change
+  useEffect(() => {
+    if (visibleLocations.length > 0) {
+      loadFactsForVisibleLocations(visibleLocations);
+    }
+  }, [visibleLocations, geminiApiKey]);
+
   // Test interval to verify setInterval is working
   useEffect(() => {
     if (isPolling) {
@@ -615,8 +707,33 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>wow grand canyon</h1>
-        <p>Enter your flight details</p>
+        <h1>🛩️ Flight Explorer</h1>
+        <p>Discover amazing places from your flight window!</p>
+        
+        {/* API Key Input
+        <div className="api-key-section">
+          <button 
+            onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+            className="api-key-toggle"
+          >
+            {geminiApiKey ? '🔑 API Key Set' : '🔑 Add Gemini API Key'}
+          </button>
+          
+          {showApiKeyInput && (
+            <div className="api-key-input">
+              <input
+                type="password"
+                placeholder="AIzaSyC35I9cDbJmkd4wTtyfzNNm3AZ-Ba9fKD4"
+                value={geminiApiKey}
+                onChange={(e) => setGeminiApiKey(e.target.value)}
+                className="api-key-field"
+              />
+              <p className="api-key-help">
+                Get your free API key from <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
+              </p>
+            </div> */}
+          {/* )}
+        </div> */}
       </header>
       
       <main className="App-main">
@@ -713,12 +830,6 @@ function App() {
                 <p><strong>Latitude:</strong> {flightData.lat?.toFixed(6) || 'N/A'}</p>
                 <p><strong>Longitude:</strong> {flightData.lon?.toFixed(6) || 'N/A'}</p>
                 <p><strong>Track:</strong> {flightData.track !== null ? `${flightData.track}°` : 'N/A'}</p>
-                {/* {isPolling && (
-                  <p className="polling-status">
-                    🔄 Updating every 2 seconds (Attempt #{pollingCount}) | Test Counter: {testCounter}
-                    {lastUpdate && <span> | Last update: {lastUpdate}</span>}
-                  </p>
-                )} */}
               </div>
             </div>
           </div>
@@ -747,22 +858,56 @@ function App() {
 
         {visibleLocations.length > 0 && (
           <div className="visible-locations">
-            <h2>🏔️ Locations Visible from Flight</h2>
+            <h2>🏔️ Locations Visible from Your Flight</h2>
             <div className="locations-list">
-              {visibleLocations.map((location, index) => (
-                <div key={index} className={`location-item ${location.type.toLowerCase().replace(' ', '-')}`}>
-                  <div className="location-header">
-                    <span className="location-name">{location.name}</span>
-                    <span className="location-type">{location.type}</span>
+              {visibleLocations.map((location, index) => {
+                const locationKey = `${location.name}_${location.state}`;
+                const fact = locationFacts[locationKey];
+                const isLoadingFact = loadingFacts[locationKey];
+                
+                return (
+                  <div key={index} className={`location-item ${location.type.toLowerCase().replace(' ', '-')}`}>
+                    <div className="location-header">
+                      <span className="location-name">{location.name}</span>
+                      <span className="location-type">{location.type}</span>
+                    </div>
+                    <div className="location-details">
+                      <span className="location-state">{location.state}</span>
+                      <span className="location-coords">
+                        {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
+                      </span>
+                    </div>
+                    
+                    {/* Educational Fact Section */}
+                    <div className="location-fact">
+                      <div className="fact-header">
+                        <h4>Did You Know?</h4>
+                        {geminiApiKey && (
+                          <button
+                            onClick={() => shuffleFact(location)}
+                            disabled={isLoadingFact}
+                            className="shuffle-btn"
+                            title="Get a new fact"
+                          >
+                            {isLoadingFact ? '⏳' : '🔀'}
+                          </button>
+                        )}
+                      </div>
+                      <div className="fact-content">
+                        {isLoadingFact ? (
+                          <p className="loading-fact">Generating an amazing fact...</p>
+                        ) : fact ? (
+                          <p>{fact}</p>
+                        ) : !geminiApiKey ? (
+                          <p className="no-api-key">Add your Gemini API key above to see fascinating facts about this location! 🔑</p>
+                        ) : (
+                          <p className="no-fact">Click the shuffle button to learn something cool! 🎲</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="location-details">
-                    <span className="location-state">{location.state}</span>
-                    <span className="location-coords">
-                      {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
