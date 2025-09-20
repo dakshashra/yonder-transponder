@@ -1,49 +1,84 @@
-# Getting Started with Create React App
+# Flight Tracker App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React application that allows users to track flights by entering airline, flight number, and seat side information. The app makes API calls to the ADSB (Automatic Dependent Surveillance-Broadcast) API to retrieve real-time flight coordinates.
+
+## Features
+
+- **Multi-select airline dropdown**: Choose from 20+ major airlines
+- **Flight number input**: Enter your flight number
+- **Seat side selection**: Choose left, right, or center seating
+- **Real-time flight tracking**: Get current latitude, longitude, altitude, speed, and heading
+- **Modern UI**: Clean, responsive design with gradient backgrounds and smooth animations
+
+## How to Use
+
+1. **Select Airlines**: Check one or more airlines from the multi-select list
+2. **Enter Flight Number**: Type your flight number (e.g., 1234)
+3. **Choose Seat Side**: Select your seating preference (Left, Right, or Center)
+4. **Track Flight**: Click "Track Flight" to search for real-time data
+
+The app will try each selected airline with your flight number to find matching flight data from the ADSB API.
+
+## API Integration
+
+This app integrates with the [ADSB Open Data API](https://opendata.adsb.fi/api/v2/callsign/[callsign]) to fetch real-time flight information including:
+- Latitude and Longitude coordinates
+- Altitude
+- Speed
+- Heading
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (version 14 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Navigate to the project directory
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the App
+
+```bash
+npm start
+```
+
+The app will open in your browser at [http://localhost:3000](http://localhost:3000).
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+This creates an optimized production build in the `build` folder.
 
 ## Available Scripts
 
-In the project directory, you can run:
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run eject` - Ejects from Create React App (one-way operation)
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React 19.1.1
+- JavaScript (ES6+)
+- CSS3 with modern features (Grid, Flexbox, Gradients)
+- Fetch API for HTTP requests
+- Create React App for project setup
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Notes
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+- The app requires an active internet connection to fetch flight data
+- Flight data availability depends on the ADSB API and whether the flight is currently being tracked
+- Some flights may not be available in the database if they're not actively transmitting ADS-B data
 
 ### Code Splitting
 
