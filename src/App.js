@@ -707,7 +707,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🛩️ Flight Explorer</h1>
+        <h1>wow amazing</h1>
         <p>Discover amazing places from your flight window!</p>
         
         {/* API Key Input
