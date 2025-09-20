@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './App.css';
-const geminiApiKey = 'AIzaSyC35I9cDbJmkd4wTtyfzNNm3AZ-Ba9fKD4';
+const geminiApiKey = process.env.REACT_APP_GEMINI_API_KEY;
 function App() {
   const [selectedAirline, setSelectedAirline] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
@@ -137,8 +137,7 @@ function App() {
     ["Wind Cave National Park", "South Dakota", 43.6114, -103.4394],
     ["Wrangell-St. Elias National Park", "Alaska", 61.0000, -142.0000]
   ];
-  console.log('REACT_APP_GEMINI_API_KEY (browser):',   geminiApiKey
-  );
+  
 
   // Major Cities data
   const major_cities = [
@@ -882,16 +881,16 @@ function App() {
                     <div className="location-fact">
                       <div className="fact-header">
                         <h4>Did You Know?</h4>
-                        {geminiApiKey && (
-                          <button
-                            onClick={() => shuffleFact(location)}
-                            disabled={isLoadingFact}
-                            className="shuffle-btn"
-                            title="Get a new fact"
-                          >
-                            {isLoadingFact ? '⏳' : '🔀'}
-                          </button>
-                        )}
+                        {/* {geminiApiKey 
+                          // <button
+                          //   onClick={() => shuffleFact(location)}
+                          //   disabled={isLoadingFact}
+                          //   className="shuffle-btn"
+                          //   title="Get a new fact"
+                          // >
+                          //   {isLoadingFact ? '⏳' : '⏳'}
+                          // </button>
+                        } */}
                       </div>
                       <div className="fact-content">
                         {isLoadingFact ? (
