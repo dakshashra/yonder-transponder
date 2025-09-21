@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './App.css';
 const geminiApiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -718,8 +718,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>wow amazing</h1>
-        <p>Discover amazing places from your flight window!</p>
+        <h1>yonder transponder</h1>
+        <p>Enter your flight number and seat side to know about what you are looking at, out of the window</p>
+        <p>yonder transponder turns your phone into an ADS-B transponder</p>
         
         {/* API Key Input
         <div className="api-key-section">
