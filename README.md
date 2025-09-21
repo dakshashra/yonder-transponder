@@ -15,7 +15,7 @@ Working with ADS-B data was our first challenge. Figuring out the math behind ca
 We are proud of the educational and entrepreneurial impact that this project will have. It will turn the mundane activity of flying into something passengers will look forward to. It will also keep children engaged throughout the flight while giving them the opportunity to learn something new about the places they overfly. 
 
 ## What we learned
-We learnt the importance of Math and Computer Science with this project. 
+We learnt the intersection of Math and Computer Science with this project. We also learned how to determine the field of view from a fast-moving object thousands of feet in the sky using mathematics. Moreover, we learned how to deal with real-time data streaming and use that data to run algorithms without causing CPU or RAM overload, since calculations run client-side and our project runs in the background. 
 
 ## What's next for yonder transponder
 yonder transponder's target audience is airlines. Many airlines already have multi-functional apps - Lufthansa has games built into theirs to entertain children, United and Swiss have a flight simulator in theirs. By indoctrinating our project into an airline's app, it boosts its NPS score and subsequently improves customer retention. 
